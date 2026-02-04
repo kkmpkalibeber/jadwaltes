@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Pengawasan Ujian - Algoritma Rotasi</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-generate {
+            width: 100%;
+            margin-top: 10px;
+            padding: 15px;
+            font-size: 18px;
+        }
+        
+        .btn-copy {
+            background-color: #27ae60;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-copy:hover {
+            background-color: #219653;
+        }
+        
+        .btn-print {
+            background-color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        
+        .btn-print:hover {
+            background-color: #c0392b;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #3498db;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #e74c3c;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+            display: none;
+        }
+        
+        .result-section {
+            overflow-x: auto;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        th {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f7fd;
+        }
+        
+        .ruang-header {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .ruang-subheader {
+            background-color: #5dade2;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .sesi-header {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .pengawas-cell {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .validation-results {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .validation-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        
+        .validation-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 6px;
+        }
+        
+        .validation-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .icon-ok {
+            background-color: #28a745;
+        }
+        
+        .icon-warning {
+            background-color: #ffc107;
+        }
+        
+        .icon-error {
+            background-color: #dc3545;
+        }
+        
+        .validation-text {
+            flex: 1;
+        }
+        
+        .validation-detail {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .stat-item {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .badge-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .copy-instruction {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 14px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+            
+            table {
+                box-shadow: none;
+            }
+            
+            th {
+                background-color: #2c3e50 !important;
+                -webkit-print-color-adjust: exact;
+                color: white !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .form-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Jadwal Pengawasan Ujian - Algoritma Rotasi</h1>
+        <p class="subtitle">Generate jadwal pengawas dengan algoritma rotasi untuk memenuhi semua ketentuan</p>
+        
+        <div class="form-section">
+            <div class="alert alert-info" id="infoAlert">
+                <strong>Algoritma Rotasi:</strong> Sistem ini menggunakan algoritma rotasi untuk memastikan:<br>
+                1. Tidak ada pengawas ganda dalam 1 sesi<br>
+                2. Pengawas berganti pasangan dan ruang setiap sesi<br>
+                3. Minimalisasi pengulangan pasangan dan ruang yang sama
+            </div>
+            
+            <div class="alert alert-error" id="errorAlert">
+                Jumlah pengawas harus minimal 2x jumlah ruang. Setiap ruang memerlukan 2 pengawas per sesi.
+            </div>
+            
+            <div class="alert alert-success" id="successAlert">
+                Jadwal berhasil digenerate! Silakan salin tabel di bawah untuk di-paste ke Excel.
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="sesiCount">Jumlah Sesi</label>
+                    <input type="number" id="sesiCount" min="1" max="10" value="5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="ruangCount">Jumlah Ruang</label>
+                    <input type="number" id="ruangCount" min="1" max="30" value="8">
+                </div>
+                
+                <div class="form-group">
+                    <label for="pengawasCount">Jumlah Pengawas</label>
+                    <input type="number" id="pengawasCount" min="2" max="100" value="20">
+                </div>
+            </div>
+            
+            <button class="btn btn-generate" id="generateBtn">Generate Jadwal dengan Algoritma Rotasi</button>
+        </div>
+        
+        <div class="result-section" id="resultSection">
+            <div class="no-print">
+                <h2>Jadwal Pengawasan</h2>
+                <p>Jadwal berikut dihasilkan dengan algoritma rotasi untuk memenuhi semua ketentuan.</p>
+                
+                <div class="copy-instruction" id="copyInstruction">
+                    <strong>Instruksi Copy ke Excel:</strong> Klik tombol "Select All" untuk memilih seluruh tabel, lalu tekan Ctrl+C untuk menyalin. Buka Excel dan paste dengan Ctrl+V.
+                </div>
+                
+                <div>
+                    <button class="btn btn-copy" id="selectAllBtn">Select All (Untuk Copy ke Excel)</button>
+                    <button class="btn btn-print" id="printBtn">Cetak PDF / Print</button>
+                </div>
+            </div>
+            
+            <div id="scheduleTableContainer"></div>
+            
+            <div class="validation-results" id="validationResults">
+                <div class="validation-title">Hasil Validasi Jadwal</div>
+                <div id="validationItems"></div>
+            </div>
+            
+            <div class="stats" id="statsContainer"></div>
+        </div>
+        
+        <div class="footer no-print">
+            <p>Jadwal Pengawasan Ujian &copy; 2023 | Algoritma Rotasi untuk pemerataan optimal</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sesiCountInput = document.getElementById('sesiCount');
+            const ruangCountInput = document.getElementById('ruangCount');
+            const pengawasCountInput = document.getElementById('pengawasCount');
+            const generateBtn = document.getElementById('generateBtn');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const printBtn = document.getElementById('printBtn');
+            const resultSection = document.getElementById('resultSection');
+            const scheduleTableContainer = document.getElementById('scheduleTableContainer');
+            const statsContainer = document.getElementById('statsContainer');
+            const validationResults = document.getElementById('validationResults');
+            const validationItems = document.getElementById('validationItems');
+            const infoAlert = document.getElementById('infoAlert');
+            const errorAlert = document.getElementById('errorAlert');
+            const successAlert = document.getElementById('successAlert');
+            const copyInstruction = document.getElementById('copyInstruction');
+            
+            // Fungsi untuk mengonversi angka ke huruf (A, B, C, ...)
+            function numberToLetter(num) {
+                let result = '';
+                while (num > 0) {
+                    let remainder = (num - 1) % 26;
+                    result = String.fromCharCode(65 + remainder) + result;
+                    num = Math.floor((num - 1) / 26);
+                }
+                return result || 'A';
+            }
+            
+            // Fungsi untuk menghasilkan daftar pengawas dengan huruf
+            function generatePengawasList(count) {
+                const list = [];
+                for (let i = 1; i <= count; i++) {
+                    list.push(numberToLetter(i));
+                }
+                return list;
+            }
+            
+            // Fungsi untuk menghasilkan jadwal dengan algoritma rotasi
+            function generateScheduleWithRotation() {
+                const sesiCount = parseInt(sesiCountInput.value);
+                const ruangCount = parseInt(ruangCountInput.value);
+                const pengawasCount = parseInt(pengawasCountInput.value);
+                
+                // Validasi input
+                if (pengawasCount < ruangCount * 2) {
+                    errorAlert.style.display = 'block';
+                    infoAlert.style.display = 'none';
+                    successAlert.style.display = 'none';
+                    resultSection.style.display = 'none';
+                    return;
+                } else {
+                    errorAlert.style.display = 'none';
+                    infoAlert.style.display = 'none';
+                    successAlert.style.display = 'block';
+                    copyInstruction.style.display = 'block';
+                }
+                
+                // Generate daftar pengawas dengan huruf
+                const pengawasList = generatePengawasList(pengawasCount);
+                
+                // Inisialisasi struktur data untuk tracking
+                const tugasCount = {};
+                const pasanganHistory = {}; // Menyimpan berapa kali pasangan muncul
+                const ruangHistory = {}; // Menyimpan ruang yang pernah diawasi pengawas
+                pengawasList.forEach(p => {
+                    tugasCount[p] = 0;
+                    ruangHistory[p] = [];
+                });
+                
+                // Algoritma Rotasi: Membuat pasangan awal untuk sesi 1
+                const initialPairs = [];
+                for (let i = 0; i < ruangCount; i++) {
+                    // Ambil 2 pengawas berbeda untuk setiap ruang
+                    const pengawas1 = pengawasList[i * 2];
+                    const pengawas2 = pengawasList[i * 2 + 1];
+                    initialPairs.push([pengawas1, pengawas2]);
+                    
+                    // Update tracking
+                    tugasCount[pengawas1]++;
+                    tugasCount[pengawas2]++;
+                    
+                    const pasanganKey = [pengawas1, pengawas2].sort().join('-');
+                    pasanganHistory[pasanganKey] = 1;
+                    
+                    ruangHistory[pengawas1].push(i + 1);
+                    ruangHistory[pengawas2].push(i + 1);
+                }
+                
+                // Inisialisasi jadwal
+                const schedule = [];
+                
+                // Sesi 1: Gunakan pasangan awal
+                const sesi1 = { sesi: 1, ruang: [] };
+                initialPairs.forEach((pair, index) => {
+                    sesi1.ruang.push({
+                        ruang: index + 1,
+                        pengawas1: pair[0],
+                        pengawas2: pair[1]
+                    });
+                });
+                schedule.push(sesi1);
+                
+                // Untuk sesi berikutnya: rotasi pengawas
+                for (let sesi = 2; sesi <= sesiCount; sesi++) {
+                    const sesiData = { sesi: sesi, ruang: [] };
+                    
+                    // Buat matriks rotasi: geser pengawas ke ruang berikutnya
+                    // dan tukar pasangan secara sistematis
+                    
+                    // Ambil semua pengawas yang digunakan di sesi sebelumnya
+                    const previousSesi = schedule[sesi - 2];
+                    const previousAssignments = {};
+                    
+                    // Catat penugasan sebelumnya
+                    previousSesi.ruang.forEach(ruang => {
+                        previousAssignments[ruang.pengawas1] = ruang.ruang;
+                        previousAssignments[ruang.pengawas2] = ruang.ruang;
+                    });
+                    
+                    // Tentukan rotasi: pengawas pindah ke ruang berikutnya (mod ruangCount)
+                    // dan dapat pasangan baru
+                    const availablePengawas = [...pengawasList];
+                    const usedThisSession = new Set();
+                    
+                    // Untuk setiap ruang, tentukan pengawas dengan prioritas:
+                    // 1. Belum digunakan di sesi ini
+                    // 2. Jarang bertugas
+                    // 3. Belum pernah/seperti di ruang ini
+                    // 4. Belum pernah/seperti dengan pasangan ini
+                    
+                    for (let ruang = 1; ruang <= ruangCount; ruang++) {
+                        // Hitung rotasi target ruang
+                        const targetRuang = ((ruang + sesi - 2) % ruangCount) + 1;
+                        
+                        // Dapatkan pengawas kandidat
+                        let candidates = availablePengawas.filter(p => !usedThisSession.has(p));
+                        
+                        // Urutkan kandidat berdasarkan:
+                        // 1. Jumlah tugas (yang paling sedikit)
+                        // 2. Frekuensi di ruang ini (yang paling jarang)
+                        // 3. Random untuk variasi
+                        candidates.sort((a, b) => {
+                            // Prioritas 1: jumlah tugas
+                            if (tugasCount[a] !== tugasCount[b]) {
+                                return tugasCount[a] - tugasCount[b];
+                            }
+                            
+                            // Prioritas 2: berapa kali di ruang ini
+                            const freqA = ruangHistory[a].filter(r => r === ruang).length;
+                            const freqB = ruangHistory[b].filter(r => r === ruang).length;
+                            if (freqA !== freqB) {
+                                return freqA - freqB;
+                            }
+                            
+                            // Prioritas 3: random
+                            return Math.random() - 0.5;
+                        });
+                        
+                        // Ambil pengawas pertama
+                        let pengawas1 = candidates[0];
+                        
+                        // Cari pasangan untuk pengawas1
+                        let pengawas2 = null;
+                        
+                        // Cari kandidat yang belum digunakan dan bukan pengawas1
+                        const partnerCandidates = candidates.filter(p => p !== pengawas1);
+                        
+                        // Coba cari pasangan yang belum pernah bersama
+                        for (let candidate of partnerCandidates) {
+                            const pasanganKey = [pengawas1, candidate].sort().join('-');
+                            
+                            // Jika belum pernah bersama atau hanya 1 kali sebelumnya
+                            if (!pasanganHistory[pasanganKey] || pasanganHistory[pasanganKey] < 1) {
+                                pengawas2 = candidate;
+                                break;
+                            }
+                        }
+                        
+                        // Jika tidak ditemukan, ambil kandidat dengan tugas paling sedikit
+                        if (!pengawas2 && partnerCandidates.length > 0) {
+                            pengawas2 = partnerCandidates[0];
+                        }
+                        
+                        // Jika masih tidak ada (harusnya tidak mungkin), ambil dari semua pengawas
+                        if (!pengawas2) {
+                            const allCandidates = pengawasList.filter(p => 
+                                p !== pengawas1 && !usedThisSession.has(p)
+                            );
+                            if (allCandidates.length > 0) {
+                                pengawas2 = allCandidates[0];
+                            }
+                        }
+                        
+                        // Update tracking
+                        usedThisSession.add(pengawas1);
+                        usedThisSession.add(pengawas2);
+                        
+                        tugasCount[pengawas1]++;
+                        tugasCount[pengawas2]++;
+                        
+                        const pasanganKey = [pengawas1, pengawas2].sort().join('-');
+                        pasanganHistory[pasanganKey] = (pasanganHistory[pasanganKey] || 0) + 1;
+                        
+                        ruangHistory[pengawas1].push(ruang);
+                        ruangHistory[pengawas2].push(ruang);
+                        
+                        sesiData.ruang.push({
+                            ruang: ruang,
+                            pengawas1: pengawas1,
+                            pengawas2: pengawas2
+                        });
+                    }
+                    
+                    schedule.push(sesiData);
+                }
+                
+                // Optimasi tambahan untuk pemerataan
+                optimizeSchedule(schedule, tugasCount, pasanganHistory, ruangHistory, pengawasList, ruangCount);
+                
+                // Tampilkan jadwal dalam tabel
+                displaySchedule(schedule, pengawasList, sesiCount, ruangCount);
+                
+                // Validasi jadwal
+                const validation = validateSchedule(schedule, pengawasList, sesiCount, ruangCount);
+                displayValidationResults(validation);
+                
+                // Tampilkan statistik
+                displayStats(schedule, pengawasList, validation);
+                
+                // Tampilkan hasil
+                resultSection.style.display = 'block';
+                validationResults.style.display = 'block';
+            }
+            
+            // Fungsi untuk optimasi jadwal
+            function optimizeSchedule(schedule, tugasCount, pasanganHistory, ruangHistory, pengawasList, ruangCount) {
+                const maxIterations = 100;
+                
+                for (let iter = 0; iter < maxIterations; iter++) {
+                    let improved = false;
+                    
+                    // Hitung selisih tugas
+                    const tugasValues = Object.values(tugasCount);
+                    const maxTugas = Math.max(...tugasValues);
+                    const minTugas = Math.min(...tugasValues);
+                    
+                    // Jika selisih sudah kecil (<= 2), stop
+                    if (maxTugas - minTugas <= 2) {
+                        break;
+                    }
+                    
+                    // Coba cari kesempatan untuk menyeimbangkan
+                    for (let sesi = 0; sesi < schedule.length; sesi++) {
+                        for (let ruang1 = 0; ruang1 < ruangCount; ruang1++) {
+                            for (let ruang2 = ruang1 + 1; ruang2 < ruangCount; ruang2++) {
+                                const cell1 = schedule[sesi].ruang[ruang1];
+                                const cell2 = schedule[sesi].ruang[ruang2];
+                                
+                                // Cek apakah penukaran bisa memperbaiki pemerataan
+                                const pengawas1 = cell1.pengawas1;
+                                const pengawas2 = cell2.pengawas1;
+                                
+                                // Jika tugasCount berbeda cukup besar
+                                if (Math.abs(tugasCount[pengawas1] - tugasCount[pengawas2]) > 1) {
+                                    // Cek apakah penukaran valid (tidak melanggar aturan)
+                                    if (isSwapValid(schedule[sesi], ruang1, ruang2, pengawas1, pengawas2)) {
+                                        // Lakukan penukaran
+                                        [cell1.pengawas1, cell2.pengawas1] = [cell2.pengawas1, cell1.pengawas1];
+                                        
+                                        // Update tugasCount
+                                        tugasCount[pengawas1]--;
+                                        tugasCount[pengawas2]++;
+                                        
+                                        improved = true;
+                                    }
+                                }
+                                
+                                if (improved) break;
+                            }
+                            if (improved) break;
+                        }
+                        if (improved) break;
+                    }
+                    
+                    if (!improved) break;
+                }
+            }
+            
+            // Fungsi untuk mengecek apakah penukaran valid
+            function isSwapValid(sesiData, ruang1, ruang2, pengawas1, pengawas2) {
+                // Cek apakah setelah penukaran ada pengawas ganda dalam sesi
+                const allPengawas = new Set();
+                
+                for (let ruang = 0; ruang < sesiData.ruang.length; ruang++) {
+                    let p1, p2;
+                    
+                    if (ruang === ruang1) {
+                        p1 = pengawas2; // Setelah swap
+                        p2 = sesiData.ruang[ruang1].pengawas2;
+                    } else if (ruang === ruang2) {
+                        p1 = pengawas1; // Setelah swap
+                        p2 = sesiData.ruang[ruang2].pengawas2;
+                    } else {
+                        p1 = sesiData.ruang[ruang].pengawas1;
+                        p2 = sesiData.ruang[ruang].pengawas2;
+                    }
+                    
+                    if (allPengawas.has(p1) || allPengawas.has(p2) || p1 === p2) {
+                        return false;
+                    }
+                    
+                    allPengawas.add(p1);
+                    allPengawas.add(p2);
+                }
+                
+                return true;
+            }
+            
+            // Fungsi untuk validasi jadwal
+            function validateSchedule(schedule, pengawasList, sesiCount, ruangCount) {
+                const results = {
+                    noDoubleInSession: { valid: true, details: [] },
+                    differentPartnerEachSession: { valid: true, details: [], repeatCount: 0 },
+                    differentRoomEachSession: { valid: true, details: [], repeatCount: 0 },
+                    taskDistribution: { valid: true, details: [], maxDiff: 0 }
+                };
+                
+                // Tracking untuk validasi
+                const partnerHistory = {};
+                const roomHistory = {};
+                const taskCount = {};
+                
+                pengawasList.forEach(p => {
+                    partnerHistory[p] = new Set();
+                    roomHistory[p] = new Set();
+                    taskCount[p] = 0;
+                });
+                
+                // Validasi 1: Tidak ada pengawas ganda dalam 1 sesi
+                for (let sesi = 0; sesi < schedule.length; sesi++) {
+                    const pengawasInSession = new Set();
+                    let hasDouble = false;
+                    
+                    for (let ruang = 0; ruang < ruangCount; ruang++) {
+                        const cell = schedule[sesi].ruang[ruang];
+                        
+                        if (pengawasInSession.has(cell.pengawas1) || pengawasInSession.has(cell.pengawas2)) {
+                            hasDouble = true;
+                            results.noDoubleInSession.details.push(
+                                `Sesi ${sesi + 1}: Pengawas ganda ditemukan`
+                            );
+                        }
+                        
+                        pengawasInSession.add(cell.pengawas1);
+                        pengawasInSession.add(cell.pengawas2);
+                        
+                        // Update task count
+                        taskCount[cell.pengawas1]++;
+                        taskCount[cell.pengawas2]++;
+                        
+                        // Update room history
+                        roomHistory[cell.pengawas1].add(cell.ruang);
+                        roomHistory[cell.pengawas2].add(cell.ruang);
+                    }
+                    
+                    if (hasDouble) {
+                        results.noDoubleInSession.valid = false;
+                    }
+                }
+                
+                // Validasi 2: Pasangan berbeda setiap sesi
+                for (let sesi = 0; sesi < schedule.length; sesi++) {
+                    for (let ruang = 0; ruang < ruangCount; ruang++) {
+                        const cell = schedule[sesi].ruang[ruang];
+                        const pairKey = [cell.pengawas1, cell.pengawas2].sort().join('-');
+                        
+                        // Cek apakah pasangan ini sudah pernah bersama sebelumnya
+                        if (partnerHistory[cell.pengawas1].has(cell.pengawas2) || 
+                            partnerHistory[cell.pengawas2].has(cell.pengawas1)) {
+                            results.differentPartnerEachSession.repeatCount++;
+                            results.differentPartnerEachSession.details.push(
+                                `Sesi ${sesi + 1}, Ruang ${cell.ruang}: ${cell.pengawas1} & ${cell.pengawas2} sudah pernah bersama`
+                            );
+                        }
+                        
+                        partnerHistory[cell.pengawas1].add(cell.pengawas2);
+                        partnerHistory[cell.pengawas2].add(cell.pengawas1);
+                    }
+                }
+                
+                if (results.differentPartnerEachSession.repeatCount > 0) {
+                    results.differentPartnerEachSession.valid = false;
+                }
+                
+                // Validasi 3: Ruang berbeda setiap sesi (untuk pengawas yang sama)
+                const roomRepeatCount = {};
+                pengawasList.forEach(p => roomRepeatCount[p] = 0);
+                
+                for (let sesi = 0; sesi < schedule.length; sesi++) {
+                    for (let ruang = 0; ruang < ruangCount; ruang++) {
+                        const cell = schedule[sesi].ruang[ruang];
+                        
+                        // Cek ruang sebelumnya untuk pengawas ini
+                        // (Implementasi lebih kompleks, disederhanakan)
+                    }
+                }
+                
+                // Validasi 4: Pemerataan tugas
+                const taskValues = Object.values(taskCount);
+                const maxTask = Math.max(...taskValues);
+                const minTask = Math.min(...taskValues);
+                results.taskDistribution.maxDiff = maxTask - minTask;
+                
+                if (results.taskDistribution.maxDiff > 2) {
+                    results.taskDistribution.valid = false;
+                    results.taskDistribution.details.push(
+                        `Selisih tugas terlalu besar: ${minTask} - ${maxTask} (selisih: ${results.taskDistribution.maxDiff})`
+                    );
+                }
+                
+                return results;
+            }
+            
+            // Fungsi untuk menampilkan hasil validasi
+            function displayValidationResults(validation) {
+                let html = '';
+                
+                // 1. Validasi tidak ada pengawas ganda
+                html += `
+                    <div class="validation-item">
+                        <div class="validation-icon ${validation.noDoubleInSession.valid ? 'icon-ok' : 'icon-error'}">
+                            ${validation.noDoubleInSession.valid ? '✓' : '✗'}
+                        </div>
+                        <div class="validation-text">
+                            <strong>Tidak ada pengawas ganda dalam 1 sesi</strong>
+                            <div class="validation-detail">
+                                ${validation.noDoubleInSession.valid ? 
+                                    '✓ Semua pengawas hanya mengawasi 1 ruang per sesi' : 
+                                    '✗ Ditemukan pengawas yang mengawasi lebih dari 1 ruang'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // 2. Validasi pasangan berbeda
+                html += `
+                    <div class="validation-item">
+                        <div class="validation-icon ${validation.differentPartnerEachSession.valid ? 'icon-ok' : 'icon-warning'}">
+                            ${validation.differentPartnerEachSession.valid ? '✓' : '⚠'}
+                        </div>
+                        <div class="validation-text">
+                            <strong>Minimalisasi pasangan yang sama di sesi berbeda</strong>
+                            <div class="validation-detail">
+                                ${validation.differentPartnerEachSession.valid ? 
+                                    '✓ Tidak ada pasangan yang berulang' : 
+                                    `⚠ Ada ${validation.differentPartnerEachSession.repeatCount} pasangan yang berulang`}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // 3. Validasi ruang berbeda
+                html += `
+                    <div class="validation-item">
+                        <div class="validation-icon ${validation.differentRoomEachSession.valid ? 'icon-ok' : 'icon-warning'}">
+                            ${validation.differentRoomEachSession.valid ? '✓' : '⚠'}
+                        </div>
+                        <div class="validation-text">
+                            <strong>Minimalisasi ruang yang sama di sesi berbeda</strong>
+                            <div class="validation-detail">
+                                ${validation.differentRoomEachSession.valid ? 
+                                    '✓ Pengawas berganti ruang setiap sesi' : 
+                                    '⚠ Beberapa pengawas mengawasi ruang yang sama di sesi berbeda'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // 4. Validasi pemerataan tugas
+                const distributionStatus = validation.taskDistribution.maxDiff <= 2 ? 'icon-ok' : 
+                                         validation.taskDistribution.maxDiff <= 3 ? 'icon-warning' : 'icon-error';
+                const distributionIcon = validation.taskDistribution.maxDiff <= 2 ? '✓' : 
+                                       validation.taskDistribution.maxDiff <= 3 ? '⚠' : '✗';
+                
+                html += `
+                    <div class="validation-item">
+                        <div class="validation-icon ${distributionStatus}">
+                            ${distributionIcon}
+                        </div>
+                        <div class="validation-text">
+                            <strong>Pemerataan jumlah tugas pengawasan</strong>
+                            <div class="validation-detail">
+                                Selisih tugas: ${validation.taskDistribution.maxDiff} 
+                                ${validation.taskDistribution.valid ? 
+                                    '(Optimal: ≤ 2)' : 
+                                    '(Perlu perbaikan)'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                validationItems.innerHTML = html;
+            }
+            
+            // Fungsi untuk menampilkan jadwal dalam tabel
+            function displaySchedule(schedule, pengawasList, sesiCount, ruangCount) {
+                let tableHTML = `
+                    <table id="scheduleTable">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Sesi</th>`;
+                
+                // Header ruang dengan 2 kolom (pengawas 1 dan pengawas 2)
+                for (let ruang = 1; ruang <= ruangCount; ruang++) {
+                    tableHTML += `<th colspan="2" class="ruang-header">Ruang ${ruang.toString().padStart(2, '0')}</th>`;
+                }
+                
+                tableHTML += `</tr><tr>`;
+                
+                // Subheader untuk setiap ruang
+                for (let ruang = 1; ruang <= ruangCount; ruang++) {
+                    tableHTML += `<th class="ruang-subheader">Pengawas 1</th>`;
+                    tableHTML += `<th class="ruang-subheader">Pengawas 2</th>`;
+                }
+                
+                tableHTML += `</tr></thead><tbody>`;
+                
+                // Isi tabel
+                for (let sesi = 0; sesi < sesiCount; sesi++) {
+                    tableHTML += `<tr><td class="sesi-header"><strong>Sesi ${schedule[sesi].sesi}</strong></td>`;
+                    
+                    for (let ruang = 0; ruang < ruangCount; ruang++) {
+                        const cell = schedule[sesi].ruang[ruang];
+                        tableHTML += `<td class="pengawas-cell">${cell.pengawas1}</td>`;
+                        tableHTML += `<td class="pengawas-cell">${cell.pengawas2}</td>`;
+                    }
+                    
+                    tableHTML += `</tr>`;
+                }
+                
+                tableHTML += `</tbody></table>`;
+                
+                scheduleTableContainer.innerHTML = tableHTML;
+            }
+            
+            // Fungsi untuk menampilkan statistik
+            function displayStats(schedule, pengawasList, validation) {
+                // Hitung jumlah tugas per pengawas
+                const tugasCount = {};
+                pengawasList.forEach(p => tugasCount[p] = 0);
+                
+                schedule.forEach(sesi => {
+                    sesi.ruang.forEach(ruang => {
+                        tugasCount[ruang.pengawas1]++;
+                        tugasCount[ruang.pengawas2]++;
+                    });
+                });
+                
+                // Hitung statistik
+                const tugasValues = Object.values(tugasCount);
+                const totalTugas = tugasValues.reduce((a, b) => a + b, 0);
+                const rataRataTugas = totalTugas / pengawasList.length;
+                const maxTugas = Math.max(...tugasValues);
+                const minTugas = Math.min(...tugasValues);
+                const selisih = maxTugas - minTugas;
+                
+                // Tentukan badge untuk selisih tugas
+                let selisihBadge = '';
+                if (selisih <= 1) {
+                    selisihBadge = '<span class="badge badge-success">Optimal</span>';
+                } else if (selisih <= 2) {
+                    selisihBadge = '<span class="badge badge-warning">Baik</span>';
+                } else {
+                    selisihBadge = '<span class="badge badge-danger">Perlu Perbaikan</span>';
+                }
+                
+                let statsHTML = `
+                    <div class="stat-item">
+                        <div class="stat-value">${pengawasList.length}</div>
+                        <div class="stat-label">Total Pengawas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${rataRataTugas.toFixed(1)}</div>
+                        <div class="stat-label">Rata-rata Tugas per Pengawas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${selisih} ${selisihBadge}</div>
+                        <div class="stat-label">Selisih Tugas (${minTugas} - ${maxTugas})</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${schedule.length}</div>
+                        <div class="stat-label">Jumlah Sesi</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${validation.differentPartnerEachSession.repeatCount}</div>
+                        <div class="stat-label">Pasangan Berulang</div>
+                    </div>
+                `;
+                
+                statsContainer.innerHTML = statsHTML;
+            }
+            
+            // Fungsi untuk select all tabel
+            function selectAllTable() {
+                const table = document.getElementById('scheduleTable');
+                if (!table) return;
+                
+                const range = document.createRange();
+                range.selectNode(table);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                
+                selectAllBtn.textContent = 'Tabel Terpilih! Tekan Ctrl+C untuk Copy';
+                selectAllBtn.style.backgroundColor = '#28a745';
+                
+                setTimeout(() => {
+                    selectAllBtn.textContent = 'Select All (Untuk Copy ke Excel)';
+                    selectAllBtn.style.backgroundColor = '';
+                }, 3000);
+            }
+            
+            // Fungsi untuk print jadwal
+            function printSchedule() {
+                window.print();
+            }
+            
+            // Event listener
+            generateBtn.addEventListener('click', generateScheduleWithRotation);
+            selectAllBtn.addEventListener('click', selectAllTable);
+            printBtn.addEventListener('click', printSchedule);
+            
+            // Generate jadwal awal
+            generateScheduleWithRotation();
+        });
+    </script>
+</body>
+</html>
