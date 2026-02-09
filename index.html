@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jadwal Pengawasan Ujian - Algoritma Rotasi</title>
+    <title>Jadwal Pengawasan Ujian dengan Ruang Off</title>
     <style>
         * {
             box-sizing: border-box;
@@ -60,7 +60,7 @@
             color: #2c3e50;
         }
         
-        input[type="number"] {
+        input[type="number"], input[type="text"] {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid #ddd;
@@ -100,6 +100,15 @@
             margin-top: 10px;
             padding: 15px;
             font-size: 18px;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            margin-right: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
         }
         
         .btn-copy {
@@ -147,6 +156,50 @@
             display: none;
         }
         
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+            display: none;
+        }
+        
+        .off-rooms-section {
+            background-color: #fff8e1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .off-rooms-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #856404;
+            font-size: 16px;
+        }
+        
+        .off-rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .off-room-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .off-room-checkbox {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .off-room-label {
+            font-size: 14px;
+        }
+        
         .result-section {
             overflow-x: auto;
             margin-top: 30px;
@@ -190,10 +243,20 @@
             font-weight: bold;
         }
         
+        .ruang-header.off {
+            background-color: #95a5a6;
+            color: #7f8c8d;
+        }
+        
         .ruang-subheader {
             background-color: #5dade2;
             color: white;
             font-weight: bold;
+        }
+        
+        .ruang-subheader.off {
+            background-color: #bdc3c7;
+            color: #7f8c8d;
         }
         
         .sesi-header {
@@ -205,6 +268,12 @@
         .pengawas-cell {
             font-weight: 600;
             color: #2c3e50;
+        }
+        
+        .cell-off {
+            background-color: #f8f9fa;
+            color: #95a5a6;
+            font-style: italic;
         }
         
         .validation-results {
@@ -355,6 +424,11 @@
                 -webkit-print-color-adjust: exact;
                 color: white !important;
             }
+            
+            .cell-off {
+                background-color: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+            }
         }
         
         @media (max-width: 768px) {
@@ -369,20 +443,21 @@
             .form-section {
                 padding: 15px;
             }
+            
+            .off-rooms-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Jadwal Pengawasan Ujian - Algoritma Rotasi</h1>
-        <p class="subtitle">Generate jadwal pengawas dengan algoritma rotasi untuk memenuhi semua ketentuan</p>
+        <h1>Jadwal Pengawasan Ujian dengan Ruang Off</h1>
+        <p class="subtitle">Generate jadwal pengawas dengan kemampuan menangani ruang yang off di sesi tertentu</p>
         
         <div class="form-section">
             <div class="alert alert-info" id="infoAlert">
-                <strong>Algoritma Rotasi:</strong> Sistem ini menggunakan algoritma rotasi untuk memastikan:<br>
-                1. Tidak ada pengawas ganda dalam 1 sesi<br>
-                2. Pengawas berganti pasangan dan ruang setiap sesi<br>
-                3. Minimalisasi pengulangan pasangan dan ruang yang sama
+                <strong>Fitur Baru:</strong> Dapat menetapkan ruang yang off di sesi tertentu. Pengawas di ruang off akan libur di sesi tersebut.
             </div>
             
             <div class="alert alert-error" id="errorAlert">
@@ -391,6 +466,10 @@
             
             <div class="alert alert-success" id="successAlert">
                 Jadwal berhasil digenerate! Silakan salin tabel di bawah untuk di-paste ke Excel.
+            </div>
+            
+            <div class="alert alert-warning" id="warningAlert">
+                Beberapa ruang di sesi tertentu akan off. Pengawas di ruang tersebut akan libur.
             </div>
             
             <div class="form-row">
@@ -410,13 +489,17 @@
                 </div>
             </div>
             
-            <button class="btn btn-generate" id="generateBtn">Generate Jadwal dengan Algoritma Rotasi</button>
+            <div id="offRoomsContainer">
+                <!-- Dinamis diisi oleh JavaScript -->
+            </div>
+            
+            <button class="btn btn-generate" id="generateBtn">Generate Jadwal dengan Ruang Off</button>
         </div>
         
         <div class="result-section" id="resultSection">
             <div class="no-print">
                 <h2>Jadwal Pengawasan</h2>
-                <p>Jadwal berikut dihasilkan dengan algoritma rotasi untuk memenuhi semua ketentuan.</p>
+                <p>Jadwal berikut mempertimbangkan ruang yang off di sesi tertentu.</p>
                 
                 <div class="copy-instruction" id="copyInstruction">
                     <strong>Instruksi Copy ke Excel:</strong> Klik tombol "Select All" untuk memilih seluruh tabel, lalu tekan Ctrl+C untuk menyalin. Buka Excel dan paste dengan Ctrl+V.
@@ -425,6 +508,7 @@
                 <div>
                     <button class="btn btn-copy" id="selectAllBtn">Select All (Untuk Copy ke Excel)</button>
                     <button class="btn btn-print" id="printBtn">Cetak PDF / Print</button>
+                    <button class="btn btn-secondary" id="toggleOffRoomsBtn">Tampilkan/Sembunyikan Ruang Off</button>
                 </div>
             </div>
             
@@ -439,7 +523,7 @@
         </div>
         
         <div class="footer no-print">
-            <p>Jadwal Pengawasan Ujian &copy; 2023 | Algoritma Rotasi untuk pemerataan optimal</p>
+            <p>Jadwal Pengawasan Ujian &copy; 2023 | Dengan fitur penanganan ruang off di sesi tertentu</p>
         </div>
     </div>
 
@@ -451,6 +535,7 @@
             const generateBtn = document.getElementById('generateBtn');
             const selectAllBtn = document.getElementById('selectAllBtn');
             const printBtn = document.getElementById('printBtn');
+            const toggleOffRoomsBtn = document.getElementById('toggleOffRoomsBtn');
             const resultSection = document.getElementById('resultSection');
             const scheduleTableContainer = document.getElementById('scheduleTableContainer');
             const statsContainer = document.getElementById('statsContainer');
@@ -459,7 +544,12 @@
             const infoAlert = document.getElementById('infoAlert');
             const errorAlert = document.getElementById('errorAlert');
             const successAlert = document.getElementById('successAlert');
+            const warningAlert = document.getElementById('warningAlert');
             const copyInstruction = document.getElementById('copyInstruction');
+            const offRoomsContainer = document.getElementById('offRoomsContainer');
+            
+            let offRoomsMap = {}; // Menyimpan ruang off per sesi: {sesi: [ruang1, ruang2, ...]}
+            let showOffRooms = true; // Flag untuk toggle tampilan ruang off
             
             // Fungsi untuk mengonversi angka ke huruf (A, B, C, ...)
             function numberToLetter(num) {
@@ -481,8 +571,72 @@
                 return list;
             }
             
-            // Fungsi untuk menghasilkan jadwal dengan algoritma rotasi
-            function generateScheduleWithRotation() {
+            // Fungsi untuk membuat form input ruang off
+            function createOffRoomsInputs() {
+                const sesiCount = parseInt(sesiCountInput.value) || 5;
+                const ruangCount = parseInt(ruangCountInput.value) || 8;
+                
+                let html = '<div class="off-rooms-section">';
+                html += '<div class="off-rooms-title">Tentukan Ruang yang Off per Sesi (Opsional):</div>';
+                html += '<p style="font-size: 14px; color: #666; margin-bottom: 15px;">Centang ruang yang akan off di sesi tertentu. Kosongkan jika tidak ada ruang off.</p>';
+                
+                // Reset offRoomsMap
+                offRoomsMap = {};
+                
+                for (let sesi = 1; sesi <= sesiCount; sesi++) {
+                    html += `<div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">`;
+                    html += `<div style="font-weight: bold; margin-bottom: 10px; color: #2c3e50;">Sesi ${sesi}:</div>`;
+                    html += '<div class="off-rooms-grid">';
+                    
+                    for (let ruang = 1; ruang <= ruangCount; ruang++) {
+                        const checkboxId = `off-sesi${sesi}-ruang${ruang}`;
+                        html += `
+                            <div class="off-room-item">
+                                <input type="checkbox" id="${checkboxId}" class="off-room-checkbox" 
+                                       data-sesi="${sesi}" data-ruang="${ruang}">
+                                <label for="${checkboxId}" class="off-room-label">Ruang ${ruang.toString().padStart(2, '0')}</label>
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div></div>';
+                }
+                
+                html += '</div>';
+                offRoomsContainer.innerHTML = html;
+                
+                // Tambahkan event listener untuk checkbox
+                document.querySelectorAll('.off-room-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', updateOffRoomsMap);
+                });
+            }
+            
+            // Fungsi untuk update offRoomsMap saat checkbox berubah
+            function updateOffRoomsMap() {
+                const sesi = parseInt(this.dataset.sesi);
+                const ruang = parseInt(this.dataset.ruang);
+                
+                if (!offRoomsMap[sesi]) {
+                    offRoomsMap[sesi] = [];
+                }
+                
+                if (this.checked) {
+                    // Tambahkan ruang ke daftar off
+                    if (!offRoomsMap[sesi].includes(ruang)) {
+                        offRoomsMap[sesi].push(ruang);
+                    }
+                } else {
+                    // Hapus ruang dari daftar off
+                    offRoomsMap[sesi] = offRoomsMap[sesi].filter(r => r !== ruang);
+                }
+                
+                // Tampilkan warning jika ada ruang off
+                const hasOffRooms = Object.values(offRoomsMap).some(arr => arr.length > 0);
+                warningAlert.style.display = hasOffRooms ? 'block' : 'none';
+            }
+            
+            // Fungsi untuk menghasilkan jadwal dengan ruang off
+            function generateScheduleWithOffRooms() {
                 const sesiCount = parseInt(sesiCountInput.value);
                 const ruangCount = parseInt(ruangCountInput.value);
                 const pengawasCount = parseInt(pengawasCountInput.value);
@@ -492,6 +646,7 @@
                     errorAlert.style.display = 'block';
                     infoAlert.style.display = 'none';
                     successAlert.style.display = 'none';
+                    warningAlert.style.display = 'none';
                     resultSection.style.display = 'none';
                     return;
                 } else {
@@ -506,225 +661,243 @@
                 
                 // Inisialisasi struktur data untuk tracking
                 const tugasCount = {};
-                const pasanganHistory = {}; // Menyimpan berapa kali pasangan muncul
-                const ruangHistory = {}; // Menyimpan ruang yang pernah diawasi pengawas
+                const pasanganHistory = {};
+                const ruangHistory = {};
+                const sesiTugasCount = {}; // Untuk tracking tugas per sesi
                 pengawasList.forEach(p => {
                     tugasCount[p] = 0;
                     ruangHistory[p] = [];
+                    sesiTugasCount[p] = 0;
                 });
                 
-                // Algoritma Rotasi: Membuat pasangan awal untuk sesi 1
-                const initialPairs = [];
-                for (let i = 0; i < ruangCount; i++) {
-                    // Ambil 2 pengawas berbeda untuk setiap ruang
-                    const pengawas1 = pengawasList[i * 2];
-                    const pengawas2 = pengawasList[i * 2 + 1];
-                    initialPairs.push([pengawas1, pengawas2]);
-                    
-                    // Update tracking
-                    tugasCount[pengawas1]++;
-                    tugasCount[pengawas2]++;
-                    
-                    const pasanganKey = [pengawas1, pengawas2].sort().join('-');
-                    pasanganHistory[pasanganKey] = 1;
-                    
-                    ruangHistory[pengawas1].push(i + 1);
-                    ruangHistory[pengawas2].push(i + 1);
+                // Siapkan data ruang aktif per sesi
+                const activeRoomsPerSession = {};
+                for (let sesi = 1; sesi <= sesiCount; sesi++) {
+                    const offRooms = offRoomsMap[sesi] || [];
+                    activeRoomsPerSession[sesi] = [];
+                    for (let ruang = 1; ruang <= ruangCount; ruang++) {
+                        if (!offRooms.includes(ruang)) {
+                            activeRoomsPerSession[sesi].push(ruang);
+                        }
+                    }
                 }
                 
-                // Inisialisasi jadwal
+                // Algoritma utama untuk menghasilkan jadwal
                 const schedule = [];
                 
-                // Sesi 1: Gunakan pasangan awal
-                const sesi1 = { sesi: 1, ruang: [] };
-                initialPairs.forEach((pair, index) => {
-                    sesi1.ruang.push({
-                        ruang: index + 1,
-                        pengawas1: pair[0],
-                        pengawas2: pair[1]
-                    });
-                });
-                schedule.push(sesi1);
-                
-                // Untuk sesi berikutnya: rotasi pengawas
-                for (let sesi = 2; sesi <= sesiCount; sesi++) {
+                // Untuk setiap sesi
+                for (let sesi = 1; sesi <= sesiCount; sesi++) {
                     const sesiData = { sesi: sesi, ruang: [] };
+                    const activeRooms = activeRoomsPerSession[sesi];
+                    const offRooms = offRoomsMap[sesi] || [];
                     
-                    // Buat matriks rotasi: geser pengawas ke ruang berikutnya
-                    // dan tukar pasangan secara sistematis
+                    // Reset tugas sesi untuk pengawas
+                    pengawasList.forEach(p => sesiTugasCount[p] = 0);
                     
-                    // Ambil semua pengawas yang digunakan di sesi sebelumnya
-                    const previousSesi = schedule[sesi - 2];
-                    const previousAssignments = {};
-                    
-                    // Catat penugasan sebelumnya
-                    previousSesi.ruang.forEach(ruang => {
-                        previousAssignments[ruang.pengawas1] = ruang.ruang;
-                        previousAssignments[ruang.pengawas2] = ruang.ruang;
-                    });
-                    
-                    // Tentukan rotasi: pengawas pindah ke ruang berikutnya (mod ruangCount)
-                    // dan dapat pasangan baru
-                    const availablePengawas = [...pengawasList];
-                    const usedThisSession = new Set();
-                    
-                    // Untuk setiap ruang, tentukan pengawas dengan prioritas:
-                    // 1. Belum digunakan di sesi ini
-                    // 2. Jarang bertugas
-                    // 3. Belum pernah/seperti di ruang ini
-                    // 4. Belum pernah/seperti dengan pasangan ini
-                    
+                    // Untuk setiap ruang (termasuk yang off)
                     for (let ruang = 1; ruang <= ruangCount; ruang++) {
-                        // Hitung rotasi target ruang
-                        const targetRuang = ((ruang + sesi - 2) % ruangCount) + 1;
-                        
-                        // Dapatkan pengawas kandidat
-                        let candidates = availablePengawas.filter(p => !usedThisSession.has(p));
-                        
-                        // Urutkan kandidat berdasarkan:
-                        // 1. Jumlah tugas (yang paling sedikit)
-                        // 2. Frekuensi di ruang ini (yang paling jarang)
-                        // 3. Random untuk variasi
-                        candidates.sort((a, b) => {
-                            // Prioritas 1: jumlah tugas
-                            if (tugasCount[a] !== tugasCount[b]) {
-                                return tugasCount[a] - tugasCount[b];
+                        if (offRooms.includes(ruang)) {
+                            // Ruang off: tidak ada pengawas
+                            sesiData.ruang.push({
+                                ruang: ruang,
+                                pengawas1: null,
+                                pengawas2: null,
+                                isOff: true
+                            });
+                        } else {
+                            // Ruang aktif: tentukan pengawas
+                            // Cari pengawas yang belum bertugas di sesi ini
+                            let availablePengawas = pengawasList.filter(p => sesiTugasCount[p] === 0);
+                            
+                            // Urutkan berdasarkan:
+                            // 1. Jumlah tugas keseluruhan (sedikit -> banyak)
+                            // 2. Jarang di ruang ini
+                            // 3. Variasi random
+                            availablePengawas.sort((a, b) => {
+                                if (tugasCount[a] !== tugasCount[b]) {
+                                    return tugasCount[a] - tugasCount[b];
+                                }
+                                
+                                const freqA = ruangHistory[a].filter(r => r === ruang).length;
+                                const freqB = ruangHistory[b].filter(r => r === ruang).length;
+                                if (freqA !== freqB) {
+                                    return freqA - freqB;
+                                }
+                                
+                                return Math.random() - 0.5;
+                            });
+                            
+                            // Ambil pengawas pertama
+                            let pengawas1 = availablePengawas[0];
+                            
+                            // Cari pasangan
+                            let pengawas2 = null;
+                            const partnerCandidates = availablePengawas.filter(p => p !== pengawas1);
+                            
+                            // Coba cari pasangan yang belum pernah bersama
+                            for (let candidate of partnerCandidates) {
+                                const pasanganKey = [pengawas1, candidate].sort().join('-');
+                                if (!pasanganHistory[pasanganKey] || pasanganHistory[pasanganKey] < 1) {
+                                    pengawas2 = candidate;
+                                    break;
+                                }
                             }
                             
-                            // Prioritas 2: berapa kali di ruang ini
-                            const freqA = ruangHistory[a].filter(r => r === ruang).length;
-                            const freqB = ruangHistory[b].filter(r => r === ruang).length;
-                            if (freqA !== freqB) {
-                                return freqA - freqB;
+                            // Jika tidak ditemukan, ambil kandidat dengan tugas paling sedikit
+                            if (!pengawas2 && partnerCandidates.length > 0) {
+                                pengawas2 = partnerCandidates[0];
                             }
                             
-                            // Prioritas 3: random
-                            return Math.random() - 0.5;
-                        });
-                        
-                        // Ambil pengawas pertama
-                        let pengawas1 = candidates[0];
-                        
-                        // Cari pasangan untuk pengawas1
-                        let pengawas2 = null;
-                        
-                        // Cari kandidat yang belum digunakan dan bukan pengawas1
-                        const partnerCandidates = candidates.filter(p => p !== pengawas1);
-                        
-                        // Coba cari pasangan yang belum pernah bersama
-                        for (let candidate of partnerCandidates) {
-                            const pasanganKey = [pengawas1, candidate].sort().join('-');
+                            // Jika masih tidak ada, cari dari semua pengawas yang belum bertugas
+                            if (!pengawas2) {
+                                const allAvailable = pengawasList.filter(p => 
+                                    p !== pengawas1 && sesiTugasCount[p] === 0
+                                );
+                                if (allAvailable.length > 0) {
+                                    pengawas2 = allAvailable[0];
+                                }
+                            }
                             
-                            // Jika belum pernah bersama atau hanya 1 kali sebelumnya
-                            if (!pasanganHistory[pasanganKey] || pasanganHistory[pasanganKey] < 1) {
-                                pengawas2 = candidate;
-                                break;
+                            // Jika benar-benar tidak ada, mungkin harus menggunakan pengawas yang sudah bertugas
+                            // (seharusnya tidak terjadi jika jumlah pengawas cukup)
+                            if (!pengawas2) {
+                                // Fallback: cari pengawas dengan tugas sesi paling sedikit
+                                const fallbackCandidates = pengawasList.filter(p => 
+                                    p !== pengawas1 && sesiTugasCount[p] < 1
+                                );
+                                if (fallbackCandidates.length > 0) {
+                                    fallbackCandidates.sort((a, b) => tugasCount[a] - tugasCount[b]);
+                                    pengawas2 = fallbackCandidates[0];
+                                }
+                            }
+                            
+                            // Update tracking
+                            if (pengawas1 && pengawas2) {
+                                sesiTugasCount[pengawas1] = 1;
+                                sesiTugasCount[pengawas2] = 1;
+                                
+                                tugasCount[pengawas1]++;
+                                tugasCount[pengawas2]++;
+                                
+                                const pasanganKey = [pengawas1, pengawas2].sort().join('-');
+                                pasanganHistory[pasanganKey] = (pasanganHistory[pasanganKey] || 0) + 1;
+                                
+                                ruangHistory[pengawas1].push(ruang);
+                                ruangHistory[pengawas2].push(ruang);
+                                
+                                sesiData.ruang.push({
+                                    ruang: ruang,
+                                    pengawas1: pengawas1,
+                                    pengawas2: pengawas2,
+                                    isOff: false
+                                });
+                            } else {
+                                // Jika tidak dapat menemukan pasangan, beri placeholder
+                                sesiData.ruang.push({
+                                    ruang: ruang,
+                                    pengawas1: '?',
+                                    pengawas2: '?',
+                                    isOff: false
+                                });
                             }
                         }
-                        
-                        // Jika tidak ditemukan, ambil kandidat dengan tugas paling sedikit
-                        if (!pengawas2 && partnerCandidates.length > 0) {
-                            pengawas2 = partnerCandidates[0];
-                        }
-                        
-                        // Jika masih tidak ada (harusnya tidak mungkin), ambil dari semua pengawas
-                        if (!pengawas2) {
-                            const allCandidates = pengawasList.filter(p => 
-                                p !== pengawas1 && !usedThisSession.has(p)
-                            );
-                            if (allCandidates.length > 0) {
-                                pengawas2 = allCandidates[0];
-                            }
-                        }
-                        
-                        // Update tracking
-                        usedThisSession.add(pengawas1);
-                        usedThisSession.add(pengawas2);
-                        
-                        tugasCount[pengawas1]++;
-                        tugasCount[pengawas2]++;
-                        
-                        const pasanganKey = [pengawas1, pengawas2].sort().join('-');
-                        pasanganHistory[pasanganKey] = (pasanganHistory[pasanganKey] || 0) + 1;
-                        
-                        ruangHistory[pengawas1].push(ruang);
-                        ruangHistory[pengawas2].push(ruang);
-                        
-                        sesiData.ruang.push({
-                            ruang: ruang,
-                            pengawas1: pengawas1,
-                            pengawas2: pengawas2
-                        });
                     }
                     
                     schedule.push(sesiData);
                 }
                 
-                // Optimasi tambahan untuk pemerataan
-                optimizeSchedule(schedule, tugasCount, pasanganHistory, ruangHistory, pengawasList, ruangCount);
+                // Optimasi untuk pemerataan tugas (khusus pengawas yang aktif)
+                optimizeScheduleWithOffRooms(schedule, tugasCount, pasanganHistory, ruangHistory, pengawasList, ruangCount, offRoomsMap);
                 
                 // Tampilkan jadwal dalam tabel
-                displaySchedule(schedule, pengawasList, sesiCount, ruangCount);
+                displayScheduleWithOffRooms(schedule, pengawasList, sesiCount, ruangCount, offRoomsMap);
                 
                 // Validasi jadwal
-                const validation = validateSchedule(schedule, pengawasList, sesiCount, ruangCount);
+                const validation = validateScheduleWithOffRooms(schedule, pengawasList, sesiCount, ruangCount, offRoomsMap);
                 displayValidationResults(validation);
                 
                 // Tampilkan statistik
-                displayStats(schedule, pengawasList, validation);
+                displayStatsWithOffRooms(schedule, pengawasList, validation, offRoomsMap);
                 
                 // Tampilkan hasil
                 resultSection.style.display = 'block';
                 validationResults.style.display = 'block';
             }
             
-            // Fungsi untuk optimasi jadwal
-            function optimizeSchedule(schedule, tugasCount, pasanganHistory, ruangHistory, pengawasList, ruangCount) {
-                const maxIterations = 100;
+            // Fungsi optimasi untuk jadwal dengan ruang off
+            function optimizeScheduleWithOffRooms(schedule, tugasCount, pasanganHistory, ruangHistory, pengawasList, ruangCount, offRoomsMap) {
+                const maxIterations = 50;
                 
                 for (let iter = 0; iter < maxIterations; iter++) {
                     let improved = false;
                     
-                    // Hitung selisih tugas
-                    const tugasValues = Object.values(tugasCount);
+                    // Hitung selisih tugas hanya untuk pengawas yang pernah bertugas
+                    const activePengawas = pengawasList.filter(p => tugasCount[p] > 0);
+                    if (activePengawas.length === 0) continue;
+                    
+                    const tugasValues = activePengawas.map(p => tugasCount[p]);
                     const maxTugas = Math.max(...tugasValues);
                     const minTugas = Math.min(...tugasValues);
                     
-                    // Jika selisih sudah kecil (<= 2), stop
+                    // Jika selisih sudah kecil (≤ 2), stop
                     if (maxTugas - minTugas <= 2) {
                         break;
                     }
                     
-                    // Coba cari kesempatan untuk menyeimbangkan
+                    // Cari pengawas dengan tugas terbanyak dan tersedikit
+                    let pengawasMax = null;
+                    let pengawasMin = null;
+                    
+                    for (let p of activePengawas) {
+                        if (tugasCount[p] === maxTugas && !pengawasMax) {
+                            pengawasMax = p;
+                        }
+                        if (tugasCount[p] === minTugas && !pengawasMin) {
+                            pengawasMin = p;
+                        }
+                        if (pengawasMax && pengawasMin) break;
+                    }
+                    
+                    if (!pengawasMax || !pengawasMin) continue;
+                    
+                    // Coba cari kesempatan untuk menukar pengawasMax dengan pengawasMin
                     for (let sesi = 0; sesi < schedule.length; sesi++) {
+                        const offRooms = offRoomsMap[sesi + 1] || [];
+                        
                         for (let ruang1 = 0; ruang1 < ruangCount; ruang1++) {
-                            for (let ruang2 = ruang1 + 1; ruang2 < ruangCount; ruang2++) {
-                                const cell1 = schedule[sesi].ruang[ruang1];
-                                const cell2 = schedule[sesi].ruang[ruang2];
-                                
-                                // Cek apakah penukaran bisa memperbaiki pemerataan
-                                const pengawas1 = cell1.pengawas1;
-                                const pengawas2 = cell2.pengawas1;
-                                
-                                // Jika tugasCount berbeda cukup besar
-                                if (Math.abs(tugasCount[pengawas1] - tugasCount[pengawas2]) > 1) {
-                                    // Cek apakah penukaran valid (tidak melanggar aturan)
-                                    if (isSwapValid(schedule[sesi], ruang1, ruang2, pengawas1, pengawas2)) {
-                                        // Lakukan penukaran
-                                        [cell1.pengawas1, cell2.pengawas1] = [cell2.pengawas1, cell1.pengawas1];
-                                        
-                                        // Update tugasCount
-                                        tugasCount[pengawas1]--;
-                                        tugasCount[pengawas2]++;
-                                        
-                                        improved = true;
+                            const cell1 = schedule[sesi].ruang[ruang1];
+                            
+                            // Lewati jika ruang off atau tidak ada pengawas
+                            if (cell1.isOff || !cell1.pengawas1 || !cell1.pengawas2) continue;
+                            
+                            // Jika pengawasMax ada di ruang ini
+                            if (cell1.pengawas1 === pengawasMax || cell1.pengawas2 === pengawasMax) {
+                                // Cari ruang lain di sesi yang sama yang memiliki pengawasMin
+                                for (let ruang2 = 0; ruang2 < ruangCount; ruang2++) {
+                                    if (ruang2 === ruang1) continue;
+                                    
+                                    const cell2 = schedule[sesi].ruang[ruang2];
+                                    if (cell2.isOff || !cell2.pengawas1 || !cell2.pengawas2) continue;
+                                    
+                                    if (cell2.pengawas1 === pengawasMin || cell2.pengawas2 === pengawasMin) {
+                                        // Coba tukar pengawasMax dengan pengawasMin
+                                        if (trySwapPengawas(schedule[sesi], ruang1, ruang2, pengawasMax, pengawasMin, offRooms)) {
+                                            // Update tugasCount
+                                            tugasCount[pengawasMax]--;
+                                            tugasCount[pengawasMin]++;
+                                            
+                                            improved = true;
+                                            break;
+                                        }
                                     }
+                                    
+                                    if (improved) break;
                                 }
-                                
-                                if (improved) break;
                             }
+                            
                             if (improved) break;
                         }
+                        
                         if (improved) break;
                     }
                     
@@ -732,69 +905,115 @@
                 }
             }
             
-            // Fungsi untuk mengecek apakah penukaran valid
-            function isSwapValid(sesiData, ruang1, ruang2, pengawas1, pengawas2) {
-                // Cek apakah setelah penukaran ada pengawas ganda dalam sesi
+            // Fungsi untuk mencoba menukar pengawas
+            function trySwapPengawas(sesiData, ruang1, ruang2, pengawasMax, pengawasMin, offRooms) {
+                const cell1 = sesiData.ruang[ruang1];
+                const cell2 = sesiData.ruang[ruang2];
+                
+                // Buat salinan untuk simulasi
+                const simulatedCell1 = { ...cell1 };
+                const simulatedCell2 = { ...cell2 };
+                
+                // Lakukan penukaran
+                if (simulatedCell1.pengawas1 === pengawasMax) {
+                    simulatedCell1.pengawas1 = pengawasMin;
+                } else if (simulatedCell1.pengawas2 === pengawasMax) {
+                    simulatedCell1.pengawas2 = pengawasMin;
+                }
+                
+                if (simulatedCell2.pengawas1 === pengawasMin) {
+                    simulatedCell2.pengawas1 = pengawasMax;
+                } else if (simulatedCell2.pengawas2 === pengawasMin) {
+                    simulatedCell2.pengawas2 = pengawasMax;
+                }
+                
+                // Validasi: tidak ada pengawas ganda dalam sesi
                 const allPengawas = new Set();
                 
                 for (let ruang = 0; ruang < sesiData.ruang.length; ruang++) {
                     let p1, p2;
                     
                     if (ruang === ruang1) {
-                        p1 = pengawas2; // Setelah swap
-                        p2 = sesiData.ruang[ruang1].pengawas2;
+                        p1 = simulatedCell1.pengawas1;
+                        p2 = simulatedCell1.pengawas2;
                     } else if (ruang === ruang2) {
-                        p1 = pengawas1; // Setelah swap
-                        p2 = sesiData.ruang[ruang2].pengawas2;
+                        p1 = simulatedCell2.pengawas1;
+                        p2 = simulatedCell2.pengawas2;
                     } else {
                         p1 = sesiData.ruang[ruang].pengawas1;
                         p2 = sesiData.ruang[ruang].pengawas2;
                     }
                     
-                    if (allPengawas.has(p1) || allPengawas.has(p2) || p1 === p2) {
-                        return false;
-                    }
+                    // Lewati jika ruang off
+                    if (sesiData.ruang[ruang].isOff) continue;
                     
-                    allPengawas.add(p1);
-                    allPengawas.add(p2);
+                    // Validasi
+                    if (p1 && p2) {
+                        if (allPengawas.has(p1) || allPengawas.has(p2) || p1 === p2) {
+                            return false;
+                        }
+                        allPengawas.add(p1);
+                        allPengawas.add(p2);
+                    }
+                }
+                
+                // Jika valid, lakukan penukaran sebenarnya
+                if (cell1.pengawas1 === pengawasMax) {
+                    cell1.pengawas1 = pengawasMin;
+                } else if (cell1.pengawas2 === pengawasMax) {
+                    cell1.pengawas2 = pengawasMin;
+                }
+                
+                if (cell2.pengawas1 === pengawasMin) {
+                    cell2.pengawas1 = pengawasMax;
+                } else if (cell2.pengawas2 === pengawasMin) {
+                    cell2.pengawas2 = pengawasMax;
                 }
                 
                 return true;
             }
             
-            // Fungsi untuk validasi jadwal
-            function validateSchedule(schedule, pengawasList, sesiCount, ruangCount) {
+            // Fungsi validasi untuk jadwal dengan ruang off
+            function validateScheduleWithOffRooms(schedule, pengawasList, sesiCount, ruangCount, offRoomsMap) {
                 const results = {
                     noDoubleInSession: { valid: true, details: [] },
                     differentPartnerEachSession: { valid: true, details: [], repeatCount: 0 },
-                    differentRoomEachSession: { valid: true, details: [], repeatCount: 0 },
-                    taskDistribution: { valid: true, details: [], maxDiff: 0 }
+                    taskDistribution: { valid: true, details: [], maxDiff: 0 },
+                    offRoomsHandled: { valid: true, details: [] }
                 };
                 
-                // Tracking untuk validasi
+                // Tracking
                 const partnerHistory = {};
-                const roomHistory = {};
                 const taskCount = {};
-                
                 pengawasList.forEach(p => {
                     partnerHistory[p] = new Set();
-                    roomHistory[p] = new Set();
                     taskCount[p] = 0;
                 });
                 
                 // Validasi 1: Tidak ada pengawas ganda dalam 1 sesi
                 for (let sesi = 0; sesi < schedule.length; sesi++) {
                     const pengawasInSession = new Set();
-                    let hasDouble = false;
+                    const offRooms = offRoomsMap[sesi + 1] || [];
                     
                     for (let ruang = 0; ruang < ruangCount; ruang++) {
                         const cell = schedule[sesi].ruang[ruang];
                         
-                        if (pengawasInSession.has(cell.pengawas1) || pengawasInSession.has(cell.pengawas2)) {
-                            hasDouble = true;
+                        // Lewati ruang off
+                        if (offRooms.includes(ruang + 1)) continue;
+                        
+                        if (!cell.pengawas1 || !cell.pengawas2) {
                             results.noDoubleInSession.details.push(
-                                `Sesi ${sesi + 1}: Pengawas ganda ditemukan`
+                                `Sesi ${sesi + 1}, Ruang ${ruang + 1}: Tidak ada pengawas`
                             );
+                            results.noDoubleInSession.valid = false;
+                            continue;
+                        }
+                        
+                        if (pengawasInSession.has(cell.pengawas1) || pengawasInSession.has(cell.pengawas2)) {
+                            results.noDoubleInSession.details.push(
+                                `Sesi ${sesi + 1}: Pengawas ganda ditemukan (${cell.pengawas1}, ${cell.pengawas2})`
+                            );
+                            results.noDoubleInSession.valid = false;
                         }
                         
                         pengawasInSession.add(cell.pengawas1);
@@ -803,29 +1022,25 @@
                         // Update task count
                         taskCount[cell.pengawas1]++;
                         taskCount[cell.pengawas2]++;
-                        
-                        // Update room history
-                        roomHistory[cell.pengawas1].add(cell.ruang);
-                        roomHistory[cell.pengawas2].add(cell.ruang);
-                    }
-                    
-                    if (hasDouble) {
-                        results.noDoubleInSession.valid = false;
                     }
                 }
                 
                 // Validasi 2: Pasangan berbeda setiap sesi
                 for (let sesi = 0; sesi < schedule.length; sesi++) {
+                    const offRooms = offRoomsMap[sesi + 1] || [];
+                    
                     for (let ruang = 0; ruang < ruangCount; ruang++) {
-                        const cell = schedule[sesi].ruang[ruang];
-                        const pairKey = [cell.pengawas1, cell.pengawas2].sort().join('-');
+                        if (offRooms.includes(ruang + 1)) continue;
                         
-                        // Cek apakah pasangan ini sudah pernah bersama sebelumnya
+                        const cell = schedule[sesi].ruang[ruang];
+                        if (!cell.pengawas1 || !cell.pengawas2) continue;
+                        
+                        // Cek apakah pasangan ini sudah pernah bersama
                         if (partnerHistory[cell.pengawas1].has(cell.pengawas2) || 
                             partnerHistory[cell.pengawas2].has(cell.pengawas1)) {
                             results.differentPartnerEachSession.repeatCount++;
                             results.differentPartnerEachSession.details.push(
-                                `Sesi ${sesi + 1}, Ruang ${cell.ruang}: ${cell.pengawas1} & ${cell.pengawas2} sudah pernah bersama`
+                                `Sesi ${sesi + 1}, Ruang ${ruang + 1}: ${cell.pengawas1} & ${cell.pengawas2} sudah pernah bersama`
                             );
                         }
                         
@@ -838,29 +1053,42 @@
                     results.differentPartnerEachSession.valid = false;
                 }
                 
-                // Validasi 3: Ruang berbeda setiap sesi (untuk pengawas yang sama)
-                const roomRepeatCount = {};
-                pengawasList.forEach(p => roomRepeatCount[p] = 0);
-                
-                for (let sesi = 0; sesi < schedule.length; sesi++) {
-                    for (let ruang = 0; ruang < ruangCount; ruang++) {
-                        const cell = schedule[sesi].ruang[ruang];
-                        
-                        // Cek ruang sebelumnya untuk pengawas ini
-                        // (Implementasi lebih kompleks, disederhanakan)
+                // Validasi 3: Pemerataan tugas (hitung hanya pengawas yang aktif)
+                const activePengawas = pengawasList.filter(p => taskCount[p] > 0);
+                if (activePengawas.length > 0) {
+                    const taskValues = activePengawas.map(p => taskCount[p]);
+                    const maxTask = Math.max(...taskValues);
+                    const minTask = Math.min(...taskValues);
+                    results.taskDistribution.maxDiff = maxTask - minTask;
+                    
+                    if (results.taskDistribution.maxDiff > 2) {
+                        results.taskDistribution.valid = false;
+                        results.taskDistribution.details.push(
+                            `Selisih tugas terlalu besar: ${minTask} - ${maxTask} (selisih: ${results.taskDistribution.maxDiff})`
+                        );
                     }
                 }
                 
-                // Validasi 4: Pemerataan tugas
-                const taskValues = Object.values(taskCount);
-                const maxTask = Math.max(...taskValues);
-                const minTask = Math.min(...taskValues);
-                results.taskDistribution.maxDiff = maxTask - minTask;
+                // Validasi 4: Ruang off ditangani dengan benar
+                let offRoomsCount = 0;
+                for (let sesi = 1; sesi <= sesiCount; sesi++) {
+                    const offRooms = offRoomsMap[sesi] || [];
+                    offRoomsCount += offRooms.length;
+                    
+                    for (let ruang of offRooms) {
+                        const cell = schedule[sesi - 1].ruang[ruang - 1];
+                        if (!cell.isOff || cell.pengawas1 !== null || cell.pengawas2 !== null) {
+                            results.offRoomsHandled.details.push(
+                                `Sesi ${sesi}, Ruang ${ruang}: Tidak ditandai sebagai off dengan benar`
+                            );
+                            results.offRoomsHandled.valid = false;
+                        }
+                    }
+                }
                 
-                if (results.taskDistribution.maxDiff > 2) {
-                    results.taskDistribution.valid = false;
-                    results.taskDistribution.details.push(
-                        `Selisih tugas terlalu besar: ${minTask} - ${maxTask} (selisih: ${results.taskDistribution.maxDiff})`
+                if (offRoomsCount > 0) {
+                    results.offRoomsHandled.details.push(
+                        `Total ${offRoomsCount} ruang off ditangani`
                     );
                 }
                 
@@ -905,18 +1133,17 @@
                     </div>
                 `;
                 
-                // 3. Validasi ruang berbeda
+                // 3. Validasi ruang off
                 html += `
                     <div class="validation-item">
-                        <div class="validation-icon ${validation.differentRoomEachSession.valid ? 'icon-ok' : 'icon-warning'}">
-                            ${validation.differentRoomEachSession.valid ? '✓' : '⚠'}
+                        <div class="validation-icon ${validation.offRoomsHandled.valid ? 'icon-ok' : 'icon-warning'}">
+                            ${validation.offRoomsHandled.valid ? '✓' : '⚠'}
                         </div>
                         <div class="validation-text">
-                            <strong>Minimalisasi ruang yang sama di sesi berbeda</strong>
+                            <strong>Penanganan ruang off</strong>
                             <div class="validation-detail">
-                                ${validation.differentRoomEachSession.valid ? 
-                                    '✓ Pengawas berganti ruang setiap sesi' : 
-                                    '⚠ Beberapa pengawas mengawasi ruang yang sama di sesi berbeda'}
+                                ${validation.offRoomsHandled.details[validation.offRoomsHandled.details.length - 1] || 
+                                 '✓ Tidak ada ruang off'}
                             </div>
                         </div>
                     </div>
@@ -948,15 +1175,15 @@
                 validationItems.innerHTML = html;
             }
             
-            // Fungsi untuk menampilkan jadwal dalam tabel
-            function displaySchedule(schedule, pengawasList, sesiCount, ruangCount) {
+            // Fungsi untuk menampilkan jadwal dengan ruang off
+            function displayScheduleWithOffRooms(schedule, pengawasList, sesiCount, ruangCount, offRoomsMap) {
                 let tableHTML = `
                     <table id="scheduleTable">
                         <thead>
                             <tr>
                                 <th rowspan="2">Sesi</th>`;
                 
-                // Header ruang dengan 2 kolom (pengawas 1 dan pengawas 2)
+                // Header ruang
                 for (let ruang = 1; ruang <= ruangCount; ruang++) {
                     tableHTML += `<th colspan="2" class="ruang-header">Ruang ${ruang.toString().padStart(2, '0')}</th>`;
                 }
@@ -973,12 +1200,22 @@
                 
                 // Isi tabel
                 for (let sesi = 0; sesi < sesiCount; sesi++) {
+                    const offRooms = offRoomsMap[sesi + 1] || [];
                     tableHTML += `<tr><td class="sesi-header"><strong>Sesi ${schedule[sesi].sesi}</strong></td>`;
                     
                     for (let ruang = 0; ruang < ruangCount; ruang++) {
                         const cell = schedule[sesi].ruang[ruang];
-                        tableHTML += `<td class="pengawas-cell">${cell.pengawas1}</td>`;
-                        tableHTML += `<td class="pengawas-cell">${cell.pengawas2}</td>`;
+                        const isOff = offRooms.includes(ruang + 1);
+                        
+                        if (isOff || cell.isOff) {
+                            tableHTML += `<td colspan="2" class="cell-off">OFF</td>`;
+                            // Karena colspan 2, kita perlu skip kolom berikutnya
+                            // Tapi karena kita sudah buat 2 td terpisah, kita perlu penanganan khusus
+                            // Mari kita ubah logikanya:
+                        } else {
+                            tableHTML += `<td class="pengawas-cell">${cell.pengawas1 || '?'}</td>`;
+                            tableHTML += `<td class="pengawas-cell">${cell.pengawas2 || '?'}</td>`;
+                        }
                     }
                     
                     tableHTML += `</tr>`;
@@ -987,28 +1224,100 @@
                 tableHTML += `</tbody></table>`;
                 
                 scheduleTableContainer.innerHTML = tableHTML;
+                
+                // Update tampilan header untuk ruang off
+                updateTableHeadersForOffRooms(ruangCount, offRoomsMap);
             }
             
-            // Fungsi untuk menampilkan statistik
-            function displayStats(schedule, pengawasList, validation) {
+            // Fungsi untuk update header tabel berdasarkan ruang off
+            function updateTableHeadersForOffRooms(ruangCount, offRoomsMap) {
+                const table = document.getElementById('scheduleTable');
+                if (!table) return;
+                
+                // Hitung semua ruang yang pernah off
+                const allOffRooms = new Set();
+                Object.values(offRoomsMap).forEach(offRooms => {
+                    offRooms.forEach(ruang => allOffRooms.add(ruang));
+                });
+                
+                // Update header untuk ruang yang pernah off
+                const headers = table.querySelectorAll('.ruang-header, .ruang-subheader');
+                headers.forEach(header => {
+                    const ruangMatch = header.textContent.match(/Ruang (\d+)/);
+                    if (ruangMatch) {
+                        const ruangNum = parseInt(ruangMatch[1]);
+                        if (allOffRooms.has(ruangNum) && showOffRooms) {
+                            header.classList.add('off');
+                        } else {
+                            header.classList.remove('off');
+                        }
+                    }
+                });
+            }
+            
+            // Fungsi untuk toggle tampilan ruang off
+            function toggleOffRoomsDisplay() {
+                showOffRooms = !showOffRooms;
+                
+                const table = document.getElementById('scheduleTable');
+                if (!table) return;
+                
+                // Toggle class 'off' pada header
+                const headers = table.querySelectorAll('.ruang-header.off, .ruang-subheader.off');
+                headers.forEach(header => {
+                    if (showOffRooms) {
+                        header.style.display = '';
+                    } else {
+                        header.style.display = 'none';
+                    }
+                });
+                
+                // Toggle baris yang berisi "OFF"
+                const offCells = table.querySelectorAll('.cell-off');
+                offCells.forEach(cell => {
+                    if (showOffRooms) {
+                        cell.style.display = '';
+                    } else {
+                        cell.style.display = 'none';
+                    }
+                });
+                
+                toggleOffRoomsBtn.textContent = showOffRooms ? 
+                    'Sembunyikan Ruang Off' : 'Tampilkan Ruang Off';
+            }
+            
+            // Fungsi untuk menampilkan statistik dengan ruang off
+            function displayStatsWithOffRooms(schedule, pengawasList, validation, offRoomsMap) {
                 // Hitung jumlah tugas per pengawas
                 const tugasCount = {};
                 pengawasList.forEach(p => tugasCount[p] = 0);
                 
+                // Hitung ruang aktif per sesi
+                let totalActiveRooms = 0;
+                
                 schedule.forEach(sesi => {
-                    sesi.ruang.forEach(ruang => {
-                        tugasCount[ruang.pengawas1]++;
-                        tugasCount[ruang.pengawas2]++;
+                    const offRooms = offRoomsMap[sesi.sesi] || [];
+                    const activeRoomsInSession = sesi.ruang.filter(r => !offRooms.includes(r.ruang) && !r.isOff);
+                    totalActiveRooms += activeRoomsInSession.length;
+                    
+                    activeRoomsInSession.forEach(ruang => {
+                        if (ruang.pengawas1 && ruang.pengawas1 !== '?') tugasCount[ruang.pengawas1]++;
+                        if (ruang.pengawas2 && ruang.pengawas2 !== '?') tugasCount[ruang.pengawas2]++;
                     });
                 });
                 
-                // Hitung statistik
-                const tugasValues = Object.values(tugasCount);
+                // Hitung statistik hanya untuk pengawas yang aktif
+                const activePengawas = pengawasList.filter(p => tugasCount[p] > 0);
+                const tugasValues = activePengawas.map(p => tugasCount[p]);
                 const totalTugas = tugasValues.reduce((a, b) => a + b, 0);
-                const rataRataTugas = totalTugas / pengawasList.length;
-                const maxTugas = Math.max(...tugasValues);
-                const minTugas = Math.min(...tugasValues);
+                const rataRataTugas = activePengawas.length > 0 ? totalTugas / activePengawas.length : 0;
+                const maxTugas = tugasValues.length > 0 ? Math.max(...tugasValues) : 0;
+                const minTugas = tugasValues.length > 0 ? Math.min(...tugasValues) : 0;
                 const selisih = maxTugas - minTugas;
+                
+                // Hitung total ruang off
+                let totalOffRooms = 0;
+                Object.values(offRoomsMap).forEach(arr => totalOffRooms += arr.length);
                 
                 // Tentukan badge untuk selisih tugas
                 let selisihBadge = '';
@@ -1022,8 +1331,8 @@
                 
                 let statsHTML = `
                     <div class="stat-item">
-                        <div class="stat-value">${pengawasList.length}</div>
-                        <div class="stat-label">Total Pengawas</div>
+                        <div class="stat-value">${activePengawas.length}</div>
+                        <div class="stat-label">Pengawas Aktif</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value">${rataRataTugas.toFixed(1)}</div>
@@ -1034,12 +1343,12 @@
                         <div class="stat-label">Selisih Tugas (${minTugas} - ${maxTugas})</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">${schedule.length}</div>
-                        <div class="stat-label">Jumlah Sesi</div>
+                        <div class="stat-value">${totalActiveRooms}</div>
+                        <div class="stat-label">Total Ruang Aktif</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">${validation.differentPartnerEachSession.repeatCount}</div>
-                        <div class="stat-label">Pasangan Berulang</div>
+                        <div class="stat-value">${totalOffRooms}</div>
+                        <div class="stat-label">Total Ruang Off</div>
                     </div>
                 `;
                 
@@ -1070,13 +1379,19 @@
                 window.print();
             }
             
-            // Event listener
-            generateBtn.addEventListener('click', generateScheduleWithRotation);
+            // Event listener untuk input perubahan
+            sesiCountInput.addEventListener('change', createOffRoomsInputs);
+            ruangCountInput.addEventListener('change', createOffRoomsInputs);
+            
+            // Event listener utama
+            generateBtn.addEventListener('click', generateScheduleWithOffRooms);
             selectAllBtn.addEventListener('click', selectAllTable);
             printBtn.addEventListener('click', printSchedule);
+            toggleOffRoomsBtn.addEventListener('click', toggleOffRoomsDisplay);
             
-            // Generate jadwal awal
-            generateScheduleWithRotation();
+            // Inisialisasi awal
+            createOffRoomsInputs();
+            generateScheduleWithOffRooms();
         });
     </script>
 </body>
